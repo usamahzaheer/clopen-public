@@ -1,0 +1,41 @@
+name: Called Workflow
+
+on:
+  workflow_call:
+    secrets:
+        token:
+          required: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      
+    - name: Sanitize Code
+      run: python script.py  # Assuming 'script.py' is your sanitization script
+
+    - name: Checkout public repo
+      uses: actions/checkout@v4
+      with:
+        repository: usamahh/my-public-repo
+        token: ${{ secrets.token }}
+        path: public-repo
+
+    - name: Move Sanitized Code
+      run: mv sanitized-code/* public-repo/  # Replace 'sanitized-code' with the correct path of sanitized code
+
+    - name: Commit and Push to Public Repo
+      run: |
+        cd public-repo
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git add .
+        git commit -m "Update public repository with sanitized code"
+        git push
+
+    - name: Run Called Workflow
+      run: |
+        echo "This is the Called Workflow"
